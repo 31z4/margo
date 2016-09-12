@@ -7,13 +7,12 @@ func New() Storage {
 }
 
 func (storage *Storage) Set(key string, i interface{}) bool {
-	switch v := i.(type) {
+	switch value := i.(type) {
 	case string, []string, map[string]string:
-		(*storage)[key] = v
+		(*storage)[key] = value
 		return true
-	default:
-		return false
 	}
+	return false
 }
 
 func (storage *Storage) Get(key string) (interface{}, bool) {
@@ -31,4 +30,32 @@ func (storage *Storage) Keys() []string {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func (storage *Storage) Update(key string, i interface{}) bool {
+	currentValue, ok := (*storage)[key]
+	if !ok {
+		return false
+	}
+
+	switch newValue := i.(type) {
+	case string:
+		if _, ok := currentValue.(string); ok {
+			(*storage)[key] = newValue
+			return true
+		}
+	case []string:
+		if l, ok := currentValue.([]string); ok {
+			(*storage)[key] = append(l, newValue...)
+			return true
+		}
+	case map[string]string:
+		if m, ok := currentValue.(map[string]string); ok {
+			for k, v := range newValue {
+				m[k] = v
+			}
+			return true
+		}
+	}
+	return false
 }
