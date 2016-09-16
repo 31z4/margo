@@ -32,7 +32,9 @@ var _ = Resource("keys", func() {
 			GET(""),
 		)
 		Description("Retrieve all keys.")
-		Response(OK, ArrayOf(String))
+		Response(OK, ArrayOf(String), func() {
+			Media("application/json")
+		})
 	})
 
 	Action("get", func() {
@@ -43,7 +45,9 @@ var _ = Resource("keys", func() {
 		Params(func() {
 			Param("key", String)
 		})
-		Response(OK)
+		Response(OK, Any, func() {
+			Media("application/json")
+		})
 		Response(NotFound)
 		Response(BadRequest, ErrorMedia)
 	})
@@ -84,7 +88,6 @@ var _ = Resource("keys", func() {
 			Param("key", String)
 		})
 		Response(OK)
-		Response(NotFound)
 		Response(BadRequest, ErrorMedia)
 	})
 })

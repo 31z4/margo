@@ -24,47 +24,45 @@ func TestStorage(t *testing.T) {
 			"test1",
 			"test2",
 			"test2",
-			[]string{"test"},
+			[]interface{}{"test"},
 		},
 		"string2": {
 			"",
 			"test",
 			"test",
-			map[string]string{},
+			map[string]interface{}{},
 		},
 		"list1": {
-			[]string{"test1", "test2"},
-			[]string{},
-			[]string{"test1", "test2"},
+			[]interface{}{"test1", 2},
+			[]interface{}{},
+			[]interface{}{"test1", 2},
 			"test",
 		},
 		"list2": {
-			[]string{"test1"},
-			[]string{"test2", "test3"},
-			[]string{"test1", "test2", "test3"},
-			map[string]string{},
+			[]interface{}{nil},
+			[]interface{}{"test1", "test2"},
+			[]interface{}{nil, "test1", "test2"},
+			map[string]interface{}{},
 		},
 		"dict1": {
-			map[string]string{"key1": "test1", "key2": "test2"},
-			map[string]string{"key1": "test3", "key3": "test4"},
-			map[string]string{"key1": "test3", "key2": "test2", "key3": "test4"},
+			map[string]interface{}{"key1": 1, "key2": []interface{}{}},
+			map[string]interface{}{"key1": "test1", "key3": "test2"},
+			map[string]interface{}{"key1": "test1", "key2": []interface{}{}, "key3": "test2"},
 			"",
 		},
 		"dict2": {
-			map[string]string{"key1": "test1"},
-			map[string]string{},
-			map[string]string{"key1": "test1"},
-			[]string{"test"},
+			map[string]interface{}{"key1": map[string]interface{}{}},
+			map[string]interface{}{},
+			map[string]interface{}{"key1": map[string]interface{}{}},
+			[]interface{}{"test"},
 		},
 	}
 
 	invalidValues := map[string]interface{}{
 		"test1": 1,
 		"test2": []int{1, 2},
-		"test3": []interface{}{"1", 2},
-		"test4": map[string]int{"key": 1},
-		"test5": map[int]string{1: "test"},
-		"test6": map[string]interface{}{"test": []string{"test"}},
+		"test3": map[string]int{"key": 1},
+		"test4": map[int]string{1: "test"},
 	}
 
 	t.Run("Empty", func(t *testing.T) {
@@ -77,8 +75,8 @@ func TestStorage(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		for k, v := range validValues {
-			if !storage.Set(k, v.set) {
-				t.Errorf("Failed to set (%#v, %#v)", k, v.set)
+			if err := storage.Set(k, v.set); err != nil {
+				t.Errorf("Failed to set (%#v, %#v): %v", k, v.set, err)
 			}
 		}
 
@@ -95,11 +93,11 @@ func TestStorage(t *testing.T) {
 
 			storage.Remove(k)
 
-			if _, ok := storage.Get(k); ok {
+			if _, err := storage.Get(k); err == nil {
 				t.Errorf("Not expected to get %#v", k)
 			}
 
-			if storage.Update(k, "test") {
+			if storage.Update(k, "test") == nil {
 				t.Errorf("Not expected to update a removed key %#v", k)
 			}
 		}
@@ -111,11 +109,11 @@ func TestStorage(t *testing.T) {
 
 	t.Run("Invalid", func(t *testing.T) {
 		for k, v := range invalidValues {
-			if storage.Set(k, v) {
+			if storage.Set(k, v) == nil {
 				t.Errorf("Not expected to set (%#v, %#v)", k, v)
 			}
 
-			if _, ok := storage.Get(k); ok {
+			if _, err := storage.Get(k); err == nil {
 				t.Errorf("Not expected to get (%#v, %#v)", k, v)
 			}
 		}
@@ -128,17 +126,17 @@ func TestStorage(t *testing.T) {
 	})
 
 	t.Run("Update", func(t *testing.T) {
-		if storage.Update("nonexistent", "test") {
+		if storage.Update("nonexistent", "test") == nil {
 			t.Error("Not expected to update a nonexistent key")
 		}
 
 		for k, vv := range validValues {
-			if !storage.Set(k, vv.set) {
-				t.Errorf("Failed to set (%#v, %#v)", k, vv.set)
+			if err := storage.Set(k, vv.set); err != nil {
+				t.Errorf("Failed to set (%#v, %#v): %v", k, vv.set, err)
 			}
 
 			for _, iv := range invalidValues {
-				if storage.Update(k, iv) {
+				if storage.Update(k, iv) == nil {
 					t.Errorf("Not expected to update (%#v, %#v)", k, iv)
 				}
 
@@ -147,15 +145,15 @@ func TestStorage(t *testing.T) {
 				}
 			}
 
-			if !storage.Update(k, vv.validUpdate) {
-				t.Errorf("Failed to update (%#v, %#v)", k, vv.validUpdate)
+			if err := storage.Update(k, vv.validUpdate); err != nil {
+				t.Errorf("Failed to update (%#v, %#v): %v", k, vv.validUpdate, err)
 			}
 
 			if actual, _ := storage.Get(k); !reflect.DeepEqual(actual, vv.updated) {
 				t.Errorf("Expected %#v, got %#v", vv.updated, actual)
 			}
 
-			if storage.Update(k, vv.invalidUpdate) {
+			if storage.Update(k, vv.invalidUpdate) == nil {
 				t.Errorf("Not expected to update (%#v, %#v)", k, vv.invalidUpdate)
 			}
 

@@ -1,0 +1,178 @@
+consumes:
+- application/json
+definitions:
+  SetKeysPayload:
+    example: 4fa0c8a0-69c4-4dc1-a1a9-31e32037cb41
+    title: SetKeysPayload
+    type: any
+  UpdateKeysPayload:
+    example: 5.902069e+18
+    title: UpdateKeysPayload
+    type: any
+  error:
+    description: Error response media type (default view)
+    example:
+      code: invalid_value
+      detail: Value of ID must be an integer
+      id: 3F1FKVRR
+      meta:
+        timestamp: 1.458609e+09
+      status: "400"
+    properties:
+      code:
+        description: an application-specific error code, expressed as a string value.
+        example: invalid_value
+        type: string
+      detail:
+        description: a human-readable explanation specific to this occurrence of the
+          problem.
+        example: Value of ID must be an integer
+        type: string
+      id:
+        description: a unique identifier for this particular occurrence of the problem.
+        example: 3F1FKVRR
+        type: string
+      meta:
+        additionalProperties: true
+        description: a meta object containing non-standard meta-information about
+          the error.
+        example:
+          timestamp: 1.458609e+09
+        type: object
+      status:
+        description: the HTTP status code applicable to this problem, expressed as
+          a string value.
+        example: "400"
+        type: string
+    title: 'Mediatype identifier: application/vnd.goa.error'
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: elisey.zanko@gmail.com
+    name: Elisey Zanko
+    url: https://github.com/31z4/margo
+  description: Rudimentary yet scalable in-memory cache.
+  license:
+    name: MIT
+    url: https://github.com/31z4/margo/blob/master/LICENSE
+  title: Margo API
+  version: 0.0.1
+paths:
+  /keys:
+    get:
+      description: Retrieve all keys.
+      operationId: keys#list
+      responses:
+        "200":
+          description: OK
+      schemes:
+      - http
+      summary: list keys
+      tags:
+      - keys
+  /keys/{key}:
+    delete:
+      description: Delete a key.
+      operationId: keys#remove
+      parameters:
+      - in: path
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error'
+      schemes:
+      - http
+      summary: remove keys
+      tags:
+      - keys
+    get:
+      description: Get the value of a key.
+      operationId: keys#get
+      parameters:
+      - in: path
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error'
+        "404":
+          description: Not Found
+      schemes:
+      - http
+      summary: get keys
+      tags:
+      - keys
+    patch:
+      description: Update the value of a key.
+      operationId: keys#update
+      parameters:
+      - in: path
+        name: key
+        required: true
+        type: string
+      - in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/UpdateKeysPayload'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error'
+        "404":
+          description: Not Found
+      schemes:
+      - http
+      summary: update keys
+      tags:
+      - keys
+    put:
+      description: Set the value of a key.
+      operationId: keys#set
+      parameters:
+      - in: path
+        name: key
+        required: true
+        type: string
+      - in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/SetKeysPayload'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error'
+      schemes:
+      - http
+      summary: set keys
+      tags:
+      - keys
+produces:
+- application/json
+responses:
+  NotFound:
+    description: Not Found
+  OK:
+    description: OK
+schemes:
+- http
+swagger: "2.0"
