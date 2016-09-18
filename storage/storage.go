@@ -1,6 +1,9 @@
 package storage
 
-import "sync"
+import (
+	"strconv"
+	"sync"
+)
 
 type NotFoundError struct {
 	detail string
@@ -47,6 +50,32 @@ func (storage *Storage) Get(key string) (interface{}, error) {
 		return value, nil
 	}
 	return nil, &NotFoundError{"key not found"}
+}
+
+func (storage *Storage) GetElement(key, element string) (interface{}, error) {
+	storage.RLock()
+	defer storage.RUnlock()
+
+	value, ok := storage.items[key]
+	if !ok {
+		return nil, &NotFoundError{"key not found"}
+	}
+
+	switch v := value.(type) {
+	case []interface{}:
+		if i, err := strconv.Atoi(element); err == nil {
+			if i >= 0 && i < len(v) {
+				return v[i], nil
+			}
+		}
+		return nil, &NotFoundError{"element not found"}
+	case map[string]interface{}:
+		if value, ok := v[element]; ok {
+			return value, nil
+		}
+		return nil, &NotFoundError{"element not found"}
+	}
+	return nil, &TypeError{"string value do not have elements"}
 }
 
 func (storage *Storage) Remove(key string) error {
