@@ -2,44 +2,63 @@ package storage
 
 import (
 	"errors"
+	"sync"
 )
 
-type Storage map[string]interface{}
+type Storage struct {
+	items map[string]interface{}
+	sync.RWMutex
+}
 
-func New() Storage {
-	return make(map[string]interface{})
+func New() *Storage {
+	return &Storage{items: make(map[string]interface{})}
 }
 
 func (storage *Storage) Set(key string, i interface{}) error {
+	storage.Lock()
+	defer storage.Unlock()
+
 	switch value := i.(type) {
 	case string, []interface{}, map[string]interface{}:
-		(*storage)[key] = value
+		storage.items[key] = value
 		return nil
 	}
 	return errors.New("Unsupported type")
 }
 
 func (storage *Storage) Get(key string) (interface{}, error) {
-	if value, ok := (*storage)[key]; ok {
+	storage.RLock()
+	defer storage.RUnlock()
+
+	if value, ok := storage.items[key]; ok {
 		return value, nil
 	}
 	return nil, errors.New("Not found")
 }
 
 func (storage *Storage) Remove(key string) {
-	delete(*storage, key)
+	storage.Lock()
+	defer storage.Unlock()
+
+	delete(storage.items, key)
 }
 
 func (storage *Storage) Keys() []string {
-	keys := make([]string, 0, len(*storage))
-	for k := range *storage {
+	storage.RLock()
+	defer storage.RUnlock()
+
+	keys := make([]string, 0, len(storage.items))
+	for k := range storage.items {
 		keys = append(keys, k)
 	}
 	return keys
 }
 
 func (storage *Storage) Update(key string, i interface{}) error {
-	currentValue, ok := (*storage)[key]
+	storage.Lock()
+	defer storage.Unlock()
+
+	currentValue, ok := storage.items[key]
 	if !ok {
 		return errors.New("Not found")
 	}
@@ -47,12 +66,12 @@ func (storage *Storage) Update(key string, i interface{}) error {
 	switch newValue := i.(type) {
 	case string:
 		if _, ok := currentValue.(string); ok {
-			(*storage)[key] = newValue
+			storage.items[key] = newValue
 			return nil
 		}
 	case []interface{}:
 		if l, ok := currentValue.([]interface{}); ok {
-			(*storage)[key] = append(l, newValue...)
+			storage.items[key] = append(l, newValue...)
 			return nil
 		}
 	case map[string]interface{}:

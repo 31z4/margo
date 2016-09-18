@@ -8,7 +8,7 @@ import (
 
 type KeysController struct {
 	*goa.Controller
-	storage storage.Storage
+	storage *storage.Storage
 }
 
 func NewKeysController(service *goa.Service) *KeysController {

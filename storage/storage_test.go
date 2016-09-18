@@ -74,6 +74,8 @@ func TestStorage(t *testing.T) {
 	})
 
 	t.Run("Valid", func(t *testing.T) {
+		t.Parallel()
+
 		for k, v := range validValues {
 			if err := storage.Set(k, v.set); err != nil {
 				t.Errorf("Failed to set (%#v, %#v): %v", k, v.set, err)
@@ -108,6 +110,8 @@ func TestStorage(t *testing.T) {
 	})
 
 	t.Run("Invalid", func(t *testing.T) {
+		t.Parallel()
+
 		for k, v := range invalidValues {
 			if storage.Set(k, v) == nil {
 				t.Errorf("Not expected to set (%#v, %#v)", k, v)
