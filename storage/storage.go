@@ -1,9 +1,22 @@
 package storage
 
-import (
-	"errors"
-	"sync"
-)
+import "sync"
+
+type NotFoundError struct {
+	detail string
+}
+
+func (e *NotFoundError) Error() string {
+	return e.detail
+}
+
+type TypeError struct {
+	detail string
+}
+
+func (e *TypeError) Error() string {
+	return e.detail
+}
 
 type Storage struct {
 	items map[string]interface{}
@@ -23,7 +36,7 @@ func (storage *Storage) Set(key string, i interface{}) error {
 		storage.items[key] = value
 		return nil
 	}
-	return errors.New("Unsupported type")
+	return &TypeError{"unsupported type"}
 }
 
 func (storage *Storage) Get(key string) (interface{}, error) {
@@ -33,14 +46,18 @@ func (storage *Storage) Get(key string) (interface{}, error) {
 	if value, ok := storage.items[key]; ok {
 		return value, nil
 	}
-	return nil, errors.New("Not found")
+	return nil, &NotFoundError{"key not found"}
 }
 
-func (storage *Storage) Remove(key string) {
+func (storage *Storage) Remove(key string) error {
 	storage.Lock()
 	defer storage.Unlock()
 
-	delete(storage.items, key)
+	if _, ok := storage.items[key]; ok {
+		delete(storage.items, key)
+		return nil
+	}
+	return &NotFoundError{"key not found"}
 }
 
 func (storage *Storage) Keys() []string {
@@ -60,7 +77,7 @@ func (storage *Storage) Update(key string, i interface{}) error {
 
 	currentValue, ok := storage.items[key]
 	if !ok {
-		return errors.New("Not found")
+		return &NotFoundError{"key not found"}
 	}
 
 	switch newValue := i.(type) {
@@ -82,7 +99,7 @@ func (storage *Storage) Update(key string, i interface{}) error {
 			return nil
 		}
 	default:
-		return errors.New("Unsupported type")
+		return &TypeError{"unsupported type"}
 	}
-	return errors.New("Incompatible types")
+	return &TypeError{"incompatible types"}
 }

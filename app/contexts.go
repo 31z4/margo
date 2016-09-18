@@ -54,9 +54,9 @@ func (ctx *GetKeysContext) BadRequest(r error) error {
 }
 
 // NotFound sends a HTTP response with status code 404.
-func (ctx *GetKeysContext) NotFound() error {
-	ctx.ResponseData.WriteHeader(404)
-	return nil
+func (ctx *GetKeysContext) NotFound(r error) error {
+	ctx.ResponseData.Header().Set("Content-Type", "application/vnd.goa.error")
+	return ctx.ResponseData.Service.Send(ctx.Context, 404, r)
 }
 
 // ListKeysContext provides the keys list action context.
@@ -119,6 +119,12 @@ func (ctx *RemoveKeysContext) OK(resp []byte) error {
 func (ctx *RemoveKeysContext) BadRequest(r error) error {
 	ctx.ResponseData.Header().Set("Content-Type", "application/vnd.goa.error")
 	return ctx.ResponseData.Service.Send(ctx.Context, 400, r)
+}
+
+// NotFound sends a HTTP response with status code 404.
+func (ctx *RemoveKeysContext) NotFound(r error) error {
+	ctx.ResponseData.Header().Set("Content-Type", "application/vnd.goa.error")
+	return ctx.ResponseData.Service.Send(ctx.Context, 404, r)
 }
 
 // SetKeysContext provides the keys set action context.
@@ -206,7 +212,7 @@ func (ctx *UpdateKeysContext) BadRequest(r error) error {
 }
 
 // NotFound sends a HTTP response with status code 404.
-func (ctx *UpdateKeysContext) NotFound() error {
-	ctx.ResponseData.WriteHeader(404)
-	return nil
+func (ctx *UpdateKeysContext) NotFound(r error) error {
+	ctx.ResponseData.Header().Set("Content-Type", "application/vnd.goa.error")
+	return ctx.ResponseData.Service.Send(ctx.Context, 404, r)
 }

@@ -48,7 +48,7 @@ var _ = Resource("keys", func() {
 		Response(OK, Any, func() {
 			Media("application/json")
 		})
-		Response(NotFound)
+		Response(NotFound, ErrorMedia)
 		Response(BadRequest, ErrorMedia)
 	})
 
@@ -75,7 +75,7 @@ var _ = Resource("keys", func() {
 			Param("key", String)
 		})
 		Response(OK)
-		Response(NotFound)
+		Response(NotFound, ErrorMedia)
 		Response(BadRequest, ErrorMedia)
 	})
 
@@ -88,6 +88,7 @@ var _ = Resource("keys", func() {
 			Param("key", String)
 		})
 		Response(OK)
+		Response(NotFound, ErrorMedia)
 		Response(BadRequest, ErrorMedia)
 	})
 })

@@ -2,7 +2,7 @@ consumes:
 - application/json
 definitions:
   SetKeysPayload:
-    example: 4fa0c8a0-69c4-4dc1-a1a9-31e32037cb41
+    example: 83888704-f87d-427c-b781-1ad19a8c8a2f
     title: SetKeysPayload
     type: any
   UpdateKeysPayload:
@@ -87,6 +87,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error'
       schemes:
       - http
       summary: remove keys
@@ -109,6 +113,8 @@ paths:
             $ref: '#/definitions/error'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/error'
       schemes:
       - http
       summary: get keys
@@ -136,6 +142,8 @@ paths:
             $ref: '#/definitions/error'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/error'
       schemes:
       - http
       summary: update keys
@@ -169,8 +177,6 @@ paths:
 produces:
 - application/json
 responses:
-  NotFound:
-    description: Not Found
   OK:
     description: OK
 schemes:

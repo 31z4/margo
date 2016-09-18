@@ -19,10 +19,11 @@ func NewKeysController(service *goa.Service) *KeysController {
 }
 
 func (c *KeysController) Get(ctx *app.GetKeysContext) error {
-	if value, err := c.storage.Get(ctx.Key); err == nil {
-		return ctx.OK(value)
+	value, err := c.storage.Get(ctx.Key)
+	if err != nil {
+		return ctx.NotFound(goa.ErrNotFound(err))
 	}
-	return ctx.NotFound()
+	return ctx.OK(value)
 }
 
 func (c *KeysController) List(ctx *app.ListKeysContext) error {
@@ -30,7 +31,9 @@ func (c *KeysController) List(ctx *app.ListKeysContext) error {
 }
 
 func (c *KeysController) Remove(ctx *app.RemoveKeysContext) error {
-	c.storage.Remove(ctx.Key)
+	if err := c.storage.Remove(ctx.Key); err != nil {
+		return ctx.NotFound(goa.ErrNotFound(err))
+	}
 	return ctx.OK([]byte(""))
 }
 
@@ -43,7 +46,12 @@ func (c *KeysController) Set(ctx *app.SetKeysContext) error {
 
 func (c *KeysController) Update(ctx *app.UpdateKeysContext) error {
 	if err := c.storage.Update(ctx.Key, ctx.Payload); err != nil {
-		return ctx.BadRequest(goa.ErrBadRequest(err))
+		switch e := err.(type) {
+		case *storage.NotFoundError:
+			return ctx.NotFound(goa.ErrNotFound(e))
+		case *storage.TypeError:
+			return ctx.BadRequest(goa.ErrBadRequest(e))
+		}
 	}
 	return ctx.OK([]byte(""))
 }

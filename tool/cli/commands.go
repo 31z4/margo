@@ -108,7 +108,7 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 
 Payload example:
 
-"ac83e8e0-4920-4fc0-8ff5-657a32d2af62"`,
+"59f5fbb9-6afb-4260-85b8-7022db3f294a"`,
 		RunE: func(cmd *cobra.Command, args []string) error { return tmp4.Run(c, args) },
 	}
 	tmp4.RegisterFlags(sub, c)

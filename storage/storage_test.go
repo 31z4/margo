@@ -70,7 +70,13 @@ func TestStorage(t *testing.T) {
 			t.Errorf("Expected len is 0, got %d", l)
 		}
 
-		storage.Remove("nonexistent")
+		if err := storage.Remove("nonexistent"); err != nil {
+			if _, ok := err.(*NotFoundError); !ok {
+				t.Errorf("Unexpected error: %#v", err)
+			}
+		} else {
+			t.Error("Not expected to remove nonexistent")
+		}
 	})
 
 	t.Run("Valid", func(t *testing.T) {
@@ -93,14 +99,32 @@ func TestStorage(t *testing.T) {
 				t.Errorf("Expected %#v, got %#v", expected.set, actual)
 			}
 
-			storage.Remove(k)
+			if err := storage.Remove(k); err != nil {
+				t.Errorf("Failed to remove %#v: %v", k, err)
+			}
 
-			if _, err := storage.Get(k); err == nil {
+			if _, err := storage.Get(k); err != nil {
+				if _, ok := err.(*NotFoundError); !ok {
+					t.Errorf("Unexpected error: %#v", err)
+				}
+			} else {
 				t.Errorf("Not expected to get %#v", k)
 			}
 
-			if storage.Update(k, "test") == nil {
-				t.Errorf("Not expected to update a removed key %#v", k)
+			if err := storage.Update(k, "test"); err != nil {
+				if _, ok := err.(*NotFoundError); !ok {
+					t.Errorf("Unexpected error: %#v", err)
+				}
+			} else {
+				t.Errorf("Not expected to update %#v", k)
+			}
+
+			if err := storage.Remove(k); err != nil {
+				if _, ok := err.(*NotFoundError); !ok {
+					t.Errorf("Unexpected error: %#v", err)
+				}
+			} else {
+				t.Errorf("Not expected to remove %#v", k)
 			}
 		}
 
@@ -113,11 +137,19 @@ func TestStorage(t *testing.T) {
 		t.Parallel()
 
 		for k, v := range invalidValues {
-			if storage.Set(k, v) == nil {
+			if err := storage.Set(k, v); err != nil {
+				if _, ok := err.(*TypeError); !ok {
+					t.Errorf("Unexpected error: %#v", err)
+				}
+			} else {
 				t.Errorf("Not expected to set (%#v, %#v)", k, v)
 			}
 
-			if _, err := storage.Get(k); err == nil {
+			if _, err := storage.Get(k); err != nil {
+				if _, ok := err.(*NotFoundError); !ok {
+					t.Errorf("Unexpected error: %#v", err)
+				}
+			} else {
 				t.Errorf("Not expected to get (%#v, %#v)", k, v)
 			}
 		}
@@ -140,7 +172,11 @@ func TestStorage(t *testing.T) {
 			}
 
 			for _, iv := range invalidValues {
-				if storage.Update(k, iv) == nil {
+				if err := storage.Update(k, iv); err != nil {
+					if _, ok := err.(*TypeError); !ok {
+						t.Errorf("Unexpected error: %#v", err)
+					}
+				} else {
 					t.Errorf("Not expected to update (%#v, %#v)", k, iv)
 				}
 
@@ -157,7 +193,11 @@ func TestStorage(t *testing.T) {
 				t.Errorf("Expected %#v, got %#v", vv.updated, actual)
 			}
 
-			if storage.Update(k, vv.invalidUpdate) == nil {
+			if err := storage.Update(k, vv.invalidUpdate); err != nil {
+				if _, ok := err.(*TypeError); !ok {
+					t.Errorf("Unexpected error: %#v", err)
+				}
+			} else {
 				t.Errorf("Not expected to update (%#v, %#v)", k, vv.invalidUpdate)
 			}
 
