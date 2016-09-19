@@ -3,6 +3,7 @@ package storage
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 var validValues = map[string]struct {
@@ -82,7 +83,7 @@ func TestValid(t *testing.T) {
 	storage := New()
 
 	for k, v := range validValues {
-		if err := storage.Set(k, v.set); err != nil {
+		if err := storage.Set(k, v.set, 0); err != nil {
 			t.Errorf("Failed to set (%#v, %#v): %v", k, v.set, err)
 		}
 	}
@@ -136,7 +137,7 @@ func TestInvalid(t *testing.T) {
 	storage := New()
 
 	for k, v := range invalidValues {
-		if err := storage.Set(k, v); err != nil {
+		if err := storage.Set(k, v, 0); err != nil {
 			if _, ok := err.(*TypeError); !ok {
 				t.Errorf("Unexpected error: %#v", err)
 			}
@@ -172,7 +173,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	for k, vv := range validValues {
-		if err := storage.Set(k, vv.set); err != nil {
+		if err := storage.Set(k, vv.set, 0); err != nil {
 			t.Errorf("Failed to set (%#v, %#v): %v", k, vv.set, err)
 		}
 
@@ -222,7 +223,7 @@ func TestGetElement(t *testing.T) {
 	}
 
 	for k, v := range values {
-		if err := storage.Set(k, v); err != nil {
+		if err := storage.Set(k, v, 0); err != nil {
 			t.Errorf("Failed to set (%#v, %#v): %v", k, v, err)
 		}
 	}
@@ -299,5 +300,98 @@ func TestGetElement(t *testing.T) {
 		}
 	} else {
 		t.Errorf("Failed to get (%#v, %#v): %v", dictKey, dictElement, err)
+	}
+}
+
+func TestTTL(t *testing.T) {
+	storage := New()
+
+	const (
+		key      = "key"
+		value    = "value"
+		duration = time.Second / 2
+	)
+
+	// Update doesn't affect TTL
+	if err := storage.Set(key, value, duration); err != nil {
+		t.Errorf("Failed to set (%#v, %#v): %v", key, value, err)
+	}
+
+	if err := storage.Update(key, value); err != nil {
+		t.Errorf("Failed to update (%#v, %#v): %v", key, value, err)
+	}
+
+	if actual, _ := storage.Get(key); actual != value {
+		t.Errorf("Expected %#v, got %#v", value, actual)
+	}
+
+	time.Sleep(2 * duration)
+
+	if _, err := storage.Get(key); err != nil {
+		if _, ok := err.(*NotFoundError); !ok {
+			t.Errorf("Unexpected error: %#v", err)
+		}
+	} else {
+		t.Errorf("Not expected to get %#v", key)
+	}
+
+	// Set overrides TTL
+	if err := storage.Set(key, value, duration); err != nil {
+		t.Errorf("Failed to set (%#v, %#v): %v", key, value, err)
+	}
+
+	if err := storage.Set(key, value, 0); err != nil {
+		t.Errorf("Failed to set (%#v, %#v): %v", key, value, err)
+	}
+
+	if actual, _ := storage.Get(key); actual != value {
+		t.Errorf("Expected %#v, got %#v", value, actual)
+	}
+
+	time.Sleep(2 * duration)
+
+	if actual, _ := storage.Get(key); actual != value {
+		t.Errorf("Expected %#v, got %#v", value, actual)
+	}
+
+	// Remove cancels the timer
+	if err := storage.Set(key, value, duration); err != nil {
+		t.Errorf("Failed to set (%#v, %#v): %v", key, value, err)
+	}
+
+	if err := storage.Remove(key); err != nil {
+		t.Errorf("Failed to remove %#v: %v", key, err)
+	}
+
+	if err := storage.Set(key, value, 0); err != nil {
+		t.Errorf("Failed to set (%#v, %#v): %v", key, value, err)
+	}
+
+	if actual, _ := storage.Get(key); actual != value {
+		t.Errorf("Expected %#v, got %#v", value, actual)
+	}
+
+	time.Sleep(2 * duration)
+
+	if actual, _ := storage.Get(key); actual != value {
+		t.Errorf("Expected %#v, got %#v", value, actual)
+	}
+}
+
+func TestNotFoundError(t *testing.T) {
+	expected := "test"
+	err := &NotFoundError{expected}
+
+	if actual := err.Error(); actual != expected {
+		t.Errorf("Expected %#v, got %#v", expected, actual)
+	}
+}
+
+func TestTypeError(t *testing.T) {
+	expected := "test"
+	err := &TypeError{expected}
+
+	if actual := err.Error(); actual != expected {
+		t.Errorf("Expected %#v, got %#v", expected, actual)
 	}
 }

@@ -51,7 +51,7 @@ func (c *KeysController) Remove(ctx *app.RemoveKeysContext) error {
 }
 
 func (c *KeysController) Set(ctx *app.SetKeysContext) error {
-	if err := c.storage.Set(ctx.Key, ctx.Payload); err != nil {
+	if err := c.storage.Set(ctx.Key, ctx.Payload, 0); err != nil {
 		return ctx.BadRequest(goa.ErrBadRequest(err))
 	}
 	return ctx.OK([]byte(""))

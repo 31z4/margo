@@ -3,6 +3,7 @@ package storage
 import (
 	"strconv"
 	"sync"
+	"time"
 )
 
 type NotFoundError struct {
@@ -21,22 +22,41 @@ func (e *TypeError) Error() string {
 	return e.detail
 }
 
+type item struct {
+	value interface{}
+	timer *time.Timer
+}
+
 type Storage struct {
-	items map[string]interface{}
+	items map[string]*item
 	sync.RWMutex
 }
 
 func New() *Storage {
-	return &Storage{items: make(map[string]interface{})}
+	return &Storage{items: make(map[string]*item)}
 }
 
-func (storage *Storage) Set(key string, i interface{}) error {
+func (storage *Storage) Set(key string, i interface{}, ttl time.Duration) error {
 	storage.Lock()
 	defer storage.Unlock()
 
 	switch value := i.(type) {
 	case string, []interface{}, map[string]interface{}:
-		storage.items[key] = value
+		if item, ok := storage.items[key]; ok && item.timer != nil {
+			item.timer.Stop()
+		}
+
+		var timer *time.Timer = nil
+		if ttl > 0 {
+			timer = time.AfterFunc(ttl, func() {
+				storage.Lock()
+				defer storage.Unlock()
+
+				delete(storage.items, key)
+			})
+		}
+
+		storage.items[key] = &item{value: value, timer: timer}
 		return nil
 	}
 	return &TypeError{"unsupported type"}
@@ -46,8 +66,8 @@ func (storage *Storage) Get(key string) (interface{}, error) {
 	storage.RLock()
 	defer storage.RUnlock()
 
-	if value, ok := storage.items[key]; ok {
-		return value, nil
+	if item, ok := storage.items[key]; ok {
+		return item.value, nil
 	}
 	return nil, &NotFoundError{"key not found"}
 }
@@ -56,12 +76,12 @@ func (storage *Storage) GetElement(key, element string) (interface{}, error) {
 	storage.RLock()
 	defer storage.RUnlock()
 
-	value, ok := storage.items[key]
+	item, ok := storage.items[key]
 	if !ok {
 		return nil, &NotFoundError{"key not found"}
 	}
 
-	switch v := value.(type) {
+	switch v := item.value.(type) {
 	case []interface{}:
 		if i, err := strconv.Atoi(element); err == nil {
 			if i >= 0 && i < len(v) {
@@ -82,7 +102,11 @@ func (storage *Storage) Remove(key string) error {
 	storage.Lock()
 	defer storage.Unlock()
 
-	if _, ok := storage.items[key]; ok {
+	if item, ok := storage.items[key]; ok {
+		if item.timer != nil {
+			item.timer.Stop()
+		}
+
 		delete(storage.items, key)
 		return nil
 	}
@@ -104,24 +128,24 @@ func (storage *Storage) Update(key string, i interface{}) error {
 	storage.Lock()
 	defer storage.Unlock()
 
-	currentValue, ok := storage.items[key]
+	item, ok := storage.items[key]
 	if !ok {
 		return &NotFoundError{"key not found"}
 	}
 
 	switch newValue := i.(type) {
 	case string:
-		if _, ok := currentValue.(string); ok {
-			storage.items[key] = newValue
+		if _, ok := item.value.(string); ok {
+			item.value = newValue
 			return nil
 		}
 	case []interface{}:
-		if l, ok := currentValue.([]interface{}); ok {
-			storage.items[key] = append(l, newValue...)
+		if l, ok := item.value.([]interface{}); ok {
+			item.value = append(l, newValue...)
 			return nil
 		}
 	case map[string]interface{}:
-		if m, ok := currentValue.(map[string]interface{}); ok {
+		if m, ok := item.value.(map[string]interface{}); ok {
 			for k, v := range newValue {
 				m[k] = v
 			}
