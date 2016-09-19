@@ -23,6 +23,13 @@ type (
 		PrettyPrint bool
 	}
 
+	// GetElementKeysCommand is the command line data structure for the getElement action of keys
+	GetElementKeysCommand struct {
+		Element     string
+		Key         string
+		PrettyPrint bool
+	}
+
 	// ListKeysCommand is the command line data structure for the list action of keys
 	ListKeysCommand struct {
 		PrettyPrint bool
@@ -69,12 +76,12 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 	command.AddCommand(sub)
 	app.AddCommand(command)
 	command = &cobra.Command{
-		Use:   "list",
-		Short: `Retrieve all keys.`,
+		Use:   "getElement",
+		Short: `Get the element of the list or dict value stored at key.`,
 	}
-	tmp2 := new(ListKeysCommand)
+	tmp2 := new(GetElementKeysCommand)
 	sub = &cobra.Command{
-		Use:   `keys ["/keys"]`,
+		Use:   `keys ["/keys/KEY/ELEMENT"]`,
 		Short: ``,
 		RunE:  func(cmd *cobra.Command, args []string) error { return tmp2.Run(c, args) },
 	}
@@ -83,12 +90,12 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 	command.AddCommand(sub)
 	app.AddCommand(command)
 	command = &cobra.Command{
-		Use:   "remove",
-		Short: `Delete a key.`,
+		Use:   "list",
+		Short: `Retrieve all keys.`,
 	}
-	tmp3 := new(RemoveKeysCommand)
+	tmp3 := new(ListKeysCommand)
 	sub = &cobra.Command{
-		Use:   `keys ["/keys/KEY"]`,
+		Use:   `keys ["/keys"]`,
 		Short: ``,
 		RunE:  func(cmd *cobra.Command, args []string) error { return tmp3.Run(c, args) },
 	}
@@ -97,10 +104,24 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 	command.AddCommand(sub)
 	app.AddCommand(command)
 	command = &cobra.Command{
+		Use:   "remove",
+		Short: `Delete a key.`,
+	}
+	tmp4 := new(RemoveKeysCommand)
+	sub = &cobra.Command{
+		Use:   `keys ["/keys/KEY"]`,
+		Short: ``,
+		RunE:  func(cmd *cobra.Command, args []string) error { return tmp4.Run(c, args) },
+	}
+	tmp4.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp4.PrettyPrint, "pp", false, "Pretty print response body")
+	command.AddCommand(sub)
+	app.AddCommand(command)
+	command = &cobra.Command{
 		Use:   "set",
 		Short: `Set the value of a key.`,
 	}
-	tmp4 := new(SetKeysCommand)
+	tmp5 := new(SetKeysCommand)
 	sub = &cobra.Command{
 		Use:   `keys ["/keys/KEY"]`,
 		Short: ``,
@@ -108,18 +129,18 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 
 Payload example:
 
-"59f5fbb9-6afb-4260-85b8-7022db3f294a"`,
-		RunE: func(cmd *cobra.Command, args []string) error { return tmp4.Run(c, args) },
+"e579363b-902a-49b1-9eeb-9c163723c664"`,
+		RunE: func(cmd *cobra.Command, args []string) error { return tmp5.Run(c, args) },
 	}
-	tmp4.RegisterFlags(sub, c)
-	sub.PersistentFlags().BoolVar(&tmp4.PrettyPrint, "pp", false, "Pretty print response body")
+	tmp5.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp5.PrettyPrint, "pp", false, "Pretty print response body")
 	command.AddCommand(sub)
 	app.AddCommand(command)
 	command = &cobra.Command{
 		Use:   "update",
 		Short: `Update the value of a key.`,
 	}
-	tmp5 := new(UpdateKeysCommand)
+	tmp6 := new(UpdateKeysCommand)
 	sub = &cobra.Command{
 		Use:   `keys ["/keys/KEY"]`,
 		Short: ``,
@@ -128,10 +149,10 @@ Payload example:
 Payload example:
 
 5902069249338256734`,
-		RunE: func(cmd *cobra.Command, args []string) error { return tmp5.Run(c, args) },
+		RunE: func(cmd *cobra.Command, args []string) error { return tmp6.Run(c, args) },
 	}
-	tmp5.RegisterFlags(sub, c)
-	sub.PersistentFlags().BoolVar(&tmp5.PrettyPrint, "pp", false, "Pretty print response body")
+	tmp6.RegisterFlags(sub, c)
+	sub.PersistentFlags().BoolVar(&tmp6.PrettyPrint, "pp", false, "Pretty print response body")
 	command.AddCommand(sub)
 	app.AddCommand(command)
 }
@@ -311,6 +332,34 @@ func (cmd *GetKeysCommand) Run(c *client.Client, args []string) error {
 
 // RegisterFlags registers the command flags with the command line.
 func (cmd *GetKeysCommand) RegisterFlags(cc *cobra.Command, c *client.Client) {
+	var key string
+	cc.Flags().StringVar(&cmd.Key, "key", key, ``)
+}
+
+// Run makes the HTTP request corresponding to the GetElementKeysCommand command.
+func (cmd *GetElementKeysCommand) Run(c *client.Client, args []string) error {
+	var path string
+	if len(args) > 0 {
+		path = args[0]
+	} else {
+		path = fmt.Sprintf("/keys/%v/%v", cmd.Element, cmd.Key)
+	}
+	logger := goa.NewLogger(log.New(os.Stderr, "", log.LstdFlags))
+	ctx := goa.WithLogger(context.Background(), logger)
+	resp, err := c.GetElementKeys(ctx, path)
+	if err != nil {
+		goa.LogError(ctx, "failed", "err", err)
+		return err
+	}
+
+	goaclient.HandleResponse(c.Client, resp, cmd.PrettyPrint)
+	return nil
+}
+
+// RegisterFlags registers the command flags with the command line.
+func (cmd *GetElementKeysCommand) RegisterFlags(cc *cobra.Command, c *client.Client) {
+	var element string
+	cc.Flags().StringVar(&cmd.Element, "element", element, ``)
 	var key string
 	cc.Flags().StringVar(&cmd.Key, "key", key, ``)
 }

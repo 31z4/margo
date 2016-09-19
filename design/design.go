@@ -52,6 +52,24 @@ var _ = Resource("keys", func() {
 		Response(BadRequest, ErrorMedia)
 	})
 
+	Action("getElement", func() {
+		Routing(
+			GET("/:key/:element"),
+		)
+		Description("Get the element of the list or dict value stored at key.")
+		Params(func() {
+			Param("key", String)
+		})
+		Params(func() {
+			Param("element", String)
+		})
+		Response(OK, Any, func() {
+			Media("application/json")
+		})
+		Response(NotFound, ErrorMedia)
+		Response(BadRequest, ErrorMedia)
+	})
+
 	Action("set", func() {
 		Routing(
 			PUT("/:key"),

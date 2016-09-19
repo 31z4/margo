@@ -33,6 +33,7 @@ func initService(service *goa.Service) {
 type KeysController interface {
 	goa.Muxer
 	Get(*GetKeysContext) error
+	GetElement(*GetElementKeysContext) error
 	List(*ListKeysContext) error
 	Remove(*RemoveKeysContext) error
 	Set(*SetKeysContext) error
@@ -58,6 +59,21 @@ func MountKeysController(service *goa.Service, ctrl KeysController) {
 	}
 	service.Mux.Handle("GET", "/keys/:key", ctrl.MuxHandler("Get", h, nil))
 	service.LogInfo("mount", "ctrl", "Keys", "action", "Get", "route", "GET /keys/:key")
+
+	h = func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
+		// Check if there was an error loading the request
+		if err := goa.ContextError(ctx); err != nil {
+			return err
+		}
+		// Build the context
+		rctx, err := NewGetElementKeysContext(ctx, service)
+		if err != nil {
+			return err
+		}
+		return ctrl.GetElement(rctx)
+	}
+	service.Mux.Handle("GET", "/keys/:key/:element", ctrl.MuxHandler("GetElement", h, nil))
+	service.LogInfo("mount", "ctrl", "Keys", "action", "GetElement", "route", "GET /keys/:key/:element")
 
 	h = func(ctx context.Context, rw http.ResponseWriter, req *http.Request) error {
 		// Check if there was an error loading the request

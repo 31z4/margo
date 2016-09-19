@@ -2,7 +2,7 @@ consumes:
 - application/json
 definitions:
   SetKeysPayload:
-    example: 83888704-f87d-427c-b781-1ad19a8c8a2f
+    example: 1fe9fedb-85a6-4ee8-88e5-ee526e47b17d
     title: SetKeysPayload
     type: any
   UpdateKeysPayload:
@@ -172,6 +172,35 @@ paths:
       schemes:
       - http
       summary: set keys
+      tags:
+      - keys
+  /keys/{key}/{element}:
+    get:
+      description: Get the element of the list or dict value stored at key.
+      operationId: keys#getElement
+      parameters:
+      - in: path
+        name: element
+        required: true
+        type: string
+      - in: path
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/error'
+      schemes:
+      - http
+      summary: getElement keys
       tags:
       - keys
 produces:

@@ -36,6 +36,34 @@ func (c *Client) NewGetKeysRequest(ctx context.Context, path string) (*http.Requ
 	return req, nil
 }
 
+// GetElementKeysPath computes a request path to the getElement action of keys.
+func GetElementKeysPath(key string, element string) string {
+	return fmt.Sprintf("/keys/%v/%v", key, element)
+}
+
+// Get the element of the list or dict value stored at key.
+func (c *Client) GetElementKeys(ctx context.Context, path string) (*http.Response, error) {
+	req, err := c.NewGetElementKeysRequest(ctx, path)
+	if err != nil {
+		return nil, err
+	}
+	return c.Client.Do(ctx, req)
+}
+
+// NewGetElementKeysRequest create the request corresponding to the getElement action endpoint of the keys resource.
+func (c *Client) NewGetElementKeysRequest(ctx context.Context, path string) (*http.Request, error) {
+	scheme := c.Scheme
+	if scheme == "" {
+		scheme = "http"
+	}
+	u := url.URL{Host: c.Host, Scheme: scheme, Path: path}
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
+}
+
 // ListKeysPath computes a request path to the list action of keys.
 func ListKeysPath() string {
 	return fmt.Sprintf("/keys")

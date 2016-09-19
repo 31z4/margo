@@ -26,6 +26,19 @@ func (c *KeysController) Get(ctx *app.GetKeysContext) error {
 	return ctx.OK(value)
 }
 
+func (c *KeysController) GetElement(ctx *app.GetElementKeysContext) error {
+	value, err := c.storage.GetElement(ctx.Key, ctx.Element)
+	if err != nil {
+		switch e := err.(type) {
+		case *storage.NotFoundError:
+			return ctx.NotFound(goa.ErrNotFound(e))
+		case *storage.TypeError:
+			return ctx.BadRequest(goa.ErrBadRequest(e))
+		}
+	}
+	return ctx.OK(value)
+}
+
 func (c *KeysController) List(ctx *app.ListKeysContext) error {
 	return ctx.OK(c.storage.Keys())
 }

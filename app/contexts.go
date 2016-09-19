@@ -59,6 +59,54 @@ func (ctx *GetKeysContext) NotFound(r error) error {
 	return ctx.ResponseData.Service.Send(ctx.Context, 404, r)
 }
 
+// GetElementKeysContext provides the keys getElement action context.
+type GetElementKeysContext struct {
+	context.Context
+	*goa.ResponseData
+	*goa.RequestData
+	Element string
+	Key     string
+}
+
+// NewGetElementKeysContext parses the incoming request URL and body, performs validations and creates the
+// context used by the keys controller getElement action.
+func NewGetElementKeysContext(ctx context.Context, service *goa.Service) (*GetElementKeysContext, error) {
+	var err error
+	resp := goa.ContextResponse(ctx)
+	resp.Service = service
+	req := goa.ContextRequest(ctx)
+	rctx := GetElementKeysContext{Context: ctx, ResponseData: resp, RequestData: req}
+	paramElement := req.Params["element"]
+	if len(paramElement) > 0 {
+		rawElement := paramElement[0]
+		rctx.Element = rawElement
+	}
+	paramKey := req.Params["key"]
+	if len(paramKey) > 0 {
+		rawKey := paramKey[0]
+		rctx.Key = rawKey
+	}
+	return &rctx, err
+}
+
+// OK sends a HTTP response with status code 200.
+func (ctx *GetElementKeysContext) OK(r interface{}) error {
+	ctx.ResponseData.Header().Set("Content-Type", "application/json")
+	return ctx.ResponseData.Service.Send(ctx.Context, 200, r)
+}
+
+// BadRequest sends a HTTP response with status code 400.
+func (ctx *GetElementKeysContext) BadRequest(r error) error {
+	ctx.ResponseData.Header().Set("Content-Type", "application/vnd.goa.error")
+	return ctx.ResponseData.Service.Send(ctx.Context, 400, r)
+}
+
+// NotFound sends a HTTP response with status code 404.
+func (ctx *GetElementKeysContext) NotFound(r error) error {
+	ctx.ResponseData.Header().Set("Content-Type", "application/vnd.goa.error")
+	return ctx.ResponseData.Service.Send(ctx.Context, 404, r)
+}
+
 // ListKeysContext provides the keys list action context.
 type ListKeysContext struct {
 	context.Context
