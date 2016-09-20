@@ -52,7 +52,7 @@ info:
     email: elisey.zanko@gmail.com
     name: Elisey Zanko
     url: https://github.com/31z4/margo
-  description: Rudimentary yet scalable in-memory cache.
+  description: Rudimentary in-memory cache.
   license:
     name: MIT
     url: https://github.com/31z4/margo/blob/master/LICENSE

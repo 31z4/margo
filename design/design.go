@@ -7,7 +7,7 @@ import (
 
 var _ = API("Margo API", func() {
 	Title("Margo API")
-	Description("Rudimentary yet scalable in-memory cache.")
+	Description("Rudimentary in-memory cache.")
 	Version("0.0.1")
 	Contact(func() {
 		Name("Elisey Zanko")
