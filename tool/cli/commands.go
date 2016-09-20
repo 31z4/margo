@@ -130,7 +130,7 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 
 Payload example:
 
-"4b1f0256-88a1-40e2-8d79-c41f5e9c83f3"`,
+"\"test\""`,
 		RunE: func(cmd *cobra.Command, args []string) error { return tmp5.Run(c, args) },
 	}
 	tmp5.RegisterFlags(sub, c)
@@ -149,7 +149,7 @@ Payload example:
 
 Payload example:
 
-5902069249338256734`,
+"[\"value1\", \"value2\"]"`,
 		RunE: func(cmd *cobra.Command, args []string) error { return tmp6.Run(c, args) },
 	}
 	tmp6.RegisterFlags(sub, c)

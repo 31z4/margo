@@ -73,7 +73,9 @@ var _ = Resource("keys", func() {
 			PUT("/:key"),
 		)
 		Description("Set the value of a key.")
-		Payload(Any)
+		Payload(Any, func() {
+			Example("\"test\"")
+		})
 		Params(func() {
 			Param("key", String)
 			Param("ttl", Integer, func() {
@@ -90,7 +92,9 @@ var _ = Resource("keys", func() {
 			PATCH("/:key"),
 		)
 		Description("Update the value of a key.")
-		Payload(Any)
+		Payload(Any, func() {
+			Example("[\"value1\", \"value2\"]")
+		})
 		Params(func() {
 			Param("key", String)
 		})

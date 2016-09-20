@@ -2,11 +2,11 @@ consumes:
 - application/json
 definitions:
   SetKeysPayload:
-    example: e7a7cb0e-927a-4246-bd83-c8ad976d3f9f
+    example: '"test"'
     title: SetKeysPayload
     type: any
   UpdateKeysPayload:
-    example: 5.902069e+18
+    example: '["value1", "value2"]'
     title: UpdateKeysPayload
     type: any
   error:
