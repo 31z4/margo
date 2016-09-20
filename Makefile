@@ -2,7 +2,10 @@ BUILD_DIR = build
 MARGO_SRC = main.go
 MARGO_CLI_SRC = tool/margo-api-cli/main.go
 
-all: clean margo margo-cli test
+all: clean get-deps margo margo-cli test
+
+get-deps:
+	@go get -t ./...
 
 margo: $(MARGO_SRC)
 	@go build -o $(BUILD_DIR)/margo
