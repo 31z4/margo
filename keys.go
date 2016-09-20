@@ -4,6 +4,7 @@ import (
 	"github.com/31z4/margo/app"
 	"github.com/goadesign/goa"
 	"github.com/31z4/margo/storage"
+	"time"
 )
 
 type KeysController struct {
@@ -51,7 +52,7 @@ func (c *KeysController) Remove(ctx *app.RemoveKeysContext) error {
 }
 
 func (c *KeysController) Set(ctx *app.SetKeysContext) error {
-	if err := c.storage.Set(ctx.Key, ctx.Payload, 0); err != nil {
+	if err := c.storage.Set(ctx.Key, ctx.Payload, time.Duration(ctx.TTL) * time.Second); err != nil {
 		return ctx.BadRequest(goa.ErrBadRequest(err))
 	}
 	return ctx.OK([]byte(""))

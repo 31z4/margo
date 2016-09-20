@@ -2,7 +2,7 @@ consumes:
 - application/json
 definitions:
   SetKeysPayload:
-    example: 1fe9fedb-85a6-4ee8-88e5-ee526e47b17d
+    example: e7a7cb0e-927a-4246-bd83-c8ad976d3f9f
     title: SetKeysPayload
     type: any
   UpdateKeysPayload:
@@ -157,6 +157,12 @@ paths:
         name: key
         required: true
         type: string
+      - default: 0
+        in: query
+        minimum: 0
+        name: ttl
+        required: false
+        type: integer
       - in: body
         name: payload
         required: true

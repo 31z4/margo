@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 // GetKeysPath computes a request path to the get action of keys.
@@ -129,8 +130,8 @@ func SetKeysPath(key string) string {
 }
 
 // Set the value of a key.
-func (c *Client) SetKeys(ctx context.Context, path string, payload SetKeysPayload, contentType string) (*http.Response, error) {
-	req, err := c.NewSetKeysRequest(ctx, path, payload, contentType)
+func (c *Client) SetKeys(ctx context.Context, path string, payload SetKeysPayload, ttl *int, contentType string) (*http.Response, error) {
+	req, err := c.NewSetKeysRequest(ctx, path, payload, ttl, contentType)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +139,7 @@ func (c *Client) SetKeys(ctx context.Context, path string, payload SetKeysPayloa
 }
 
 // NewSetKeysRequest create the request corresponding to the set action endpoint of the keys resource.
-func (c *Client) NewSetKeysRequest(ctx context.Context, path string, payload SetKeysPayload, contentType string) (*http.Request, error) {
+func (c *Client) NewSetKeysRequest(ctx context.Context, path string, payload SetKeysPayload, ttl *int, contentType string) (*http.Request, error) {
 	var body bytes.Buffer
 	if contentType == "" {
 		contentType = "*/*" // Use default encoder
@@ -152,6 +153,12 @@ func (c *Client) NewSetKeysRequest(ctx context.Context, path string, payload Set
 		scheme = "http"
 	}
 	u := url.URL{Host: c.Host, Scheme: scheme, Path: path}
+	values := u.Query()
+	if ttl != nil {
+		tmp7 := strconv.Itoa(*ttl)
+		values.Set("ttl", tmp7)
+	}
+	u.RawQuery = values.Encode()
 	req, err := http.NewRequest("PUT", u.String(), &body)
 	if err != nil {
 		return nil, err

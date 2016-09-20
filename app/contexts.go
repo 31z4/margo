@@ -15,6 +15,7 @@ package app
 import (
 	"github.com/goadesign/goa"
 	"golang.org/x/net/context"
+	"strconv"
 )
 
 // GetKeysContext provides the keys get action context.
@@ -181,6 +182,7 @@ type SetKeysContext struct {
 	*goa.ResponseData
 	*goa.RequestData
 	Key     string
+	TTL     int
 	Payload SetKeysPayload
 }
 
@@ -196,6 +198,18 @@ func NewSetKeysContext(ctx context.Context, service *goa.Service) (*SetKeysConte
 	if len(paramKey) > 0 {
 		rawKey := paramKey[0]
 		rctx.Key = rawKey
+	}
+	paramTTL := req.Params["ttl"]
+	if len(paramTTL) > 0 {
+		rawTTL := paramTTL[0]
+		if ttl, err2 := strconv.Atoi(rawTTL); err2 == nil {
+			rctx.TTL = ttl
+		} else {
+			err = goa.MergeErrors(err, goa.InvalidParamTypeError("ttl", rawTTL, "integer"))
+		}
+		if rctx.TTL < 0 {
+			err = goa.MergeErrors(err, goa.InvalidRangeError(`ttl`, rctx.TTL, 0, true))
+		}
 	}
 	return &rctx, err
 }

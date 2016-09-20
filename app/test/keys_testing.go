@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 )
 
 // GetKeysBadRequest runs the method Get of the given controller with the given parameters.
@@ -638,7 +639,7 @@ func RemoveKeysOK(t goatest.TInterface, ctx context.Context, service *goa.Servic
 // It returns the response writer so it's possible to inspect the response headers and the media type struct written to the response.
 // If ctx is nil then context.Background() is used.
 // If service is nil then a default service is created.
-func SetKeysBadRequest(t goatest.TInterface, ctx context.Context, service *goa.Service, ctrl app.KeysController, key string, payload app.SetKeysPayload) (http.ResponseWriter, error) {
+func SetKeysBadRequest(t goatest.TInterface, ctx context.Context, service *goa.Service, ctrl app.KeysController, key string, ttl int, payload app.SetKeysPayload) (http.ResponseWriter, error) {
 	// Setup service
 	var (
 		logBuf bytes.Buffer
@@ -658,8 +659,14 @@ func SetKeysBadRequest(t goatest.TInterface, ctx context.Context, service *goa.S
 
 	// Setup request context
 	rw := httptest.NewRecorder()
+	query := url.Values{}
+	{
+		sliceVal := []string{strconv.Itoa(ttl)}
+		query["ttl"] = sliceVal
+	}
 	u := &url.URL{
-		Path: fmt.Sprintf("/keys/%v", key),
+		Path:     fmt.Sprintf("/keys/%v", key),
+		RawQuery: query.Encode(),
 	}
 	req, err := http.NewRequest("PUT", u.String(), nil)
 	if err != nil {
@@ -667,6 +674,10 @@ func SetKeysBadRequest(t goatest.TInterface, ctx context.Context, service *goa.S
 	}
 	prms := url.Values{}
 	prms["key"] = []string{fmt.Sprintf("%v", key)}
+	{
+		sliceVal := []string{strconv.Itoa(ttl)}
+		prms["ttl"] = sliceVal
+	}
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -704,7 +715,7 @@ func SetKeysBadRequest(t goatest.TInterface, ctx context.Context, service *goa.S
 // It returns the response writer so it's possible to inspect the response headers.
 // If ctx is nil then context.Background() is used.
 // If service is nil then a default service is created.
-func SetKeysOK(t goatest.TInterface, ctx context.Context, service *goa.Service, ctrl app.KeysController, key string, payload app.SetKeysPayload) http.ResponseWriter {
+func SetKeysOK(t goatest.TInterface, ctx context.Context, service *goa.Service, ctrl app.KeysController, key string, ttl int, payload app.SetKeysPayload) http.ResponseWriter {
 	// Setup service
 	var (
 		logBuf bytes.Buffer
@@ -724,8 +735,14 @@ func SetKeysOK(t goatest.TInterface, ctx context.Context, service *goa.Service, 
 
 	// Setup request context
 	rw := httptest.NewRecorder()
+	query := url.Values{}
+	{
+		sliceVal := []string{strconv.Itoa(ttl)}
+		query["ttl"] = sliceVal
+	}
 	u := &url.URL{
-		Path: fmt.Sprintf("/keys/%v", key),
+		Path:     fmt.Sprintf("/keys/%v", key),
+		RawQuery: query.Encode(),
 	}
 	req, err := http.NewRequest("PUT", u.String(), nil)
 	if err != nil {
@@ -733,6 +750,10 @@ func SetKeysOK(t goatest.TInterface, ctx context.Context, service *goa.Service, 
 	}
 	prms := url.Values{}
 	prms["key"] = []string{fmt.Sprintf("%v", key)}
+	{
+		sliceVal := []string{strconv.Itoa(ttl)}
+		prms["ttl"] = sliceVal
+	}
 	if ctx == nil {
 		ctx = context.Background()
 	}

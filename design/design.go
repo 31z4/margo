@@ -59,8 +59,6 @@ var _ = Resource("keys", func() {
 		Description("Get the element of the list or dict value stored at key.")
 		Params(func() {
 			Param("key", String)
-		})
-		Params(func() {
 			Param("element", String)
 		})
 		Response(OK, Any, func() {
@@ -78,6 +76,10 @@ var _ = Resource("keys", func() {
 		Payload(Any)
 		Params(func() {
 			Param("key", String)
+			Param("ttl", Integer, func() {
+				Minimum(0)
+				Default(0)
+			})
 		})
 		Response(OK)
 		Response(BadRequest, ErrorMedia)

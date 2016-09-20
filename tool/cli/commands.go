@@ -46,6 +46,7 @@ type (
 		Payload     string
 		ContentType string
 		Key         string
+		TTL         int
 		PrettyPrint bool
 	}
 
@@ -129,7 +130,7 @@ func RegisterCommands(app *cobra.Command, c *client.Client) {
 
 Payload example:
 
-"e579363b-902a-49b1-9eeb-9c163723c664"`,
+"4b1f0256-88a1-40e2-8d79-c41f5e9c83f3"`,
 		RunE: func(cmd *cobra.Command, args []string) error { return tmp5.Run(c, args) },
 	}
 	tmp5.RegisterFlags(sub, c)
@@ -431,7 +432,7 @@ func (cmd *SetKeysCommand) Run(c *client.Client, args []string) error {
 	}
 	logger := goa.NewLogger(log.New(os.Stderr, "", log.LstdFlags))
 	ctx := goa.WithLogger(context.Background(), logger)
-	resp, err := c.SetKeys(ctx, path, &payload, cmd.ContentType)
+	resp, err := c.SetKeys(ctx, path, &payload, intFlagVal("ttl", cmd.TTL), cmd.ContentType)
 	if err != nil {
 		goa.LogError(ctx, "failed", "err", err)
 		return err
@@ -447,6 +448,8 @@ func (cmd *SetKeysCommand) RegisterFlags(cc *cobra.Command, c *client.Client) {
 	cc.Flags().StringVar(&cmd.ContentType, "content", "", "Request content type override, e.g. 'application/x-www-form-urlencoded'")
 	var key string
 	cc.Flags().StringVar(&cmd.Key, "key", key, ``)
+	var ttl int
+	cc.Flags().IntVar(&cmd.TTL, "ttl", ttl, ``)
 }
 
 // Run makes the HTTP request corresponding to the UpdateKeysCommand command.
