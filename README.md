@@ -16,8 +16,6 @@ Build artifacts will be in the `build` directory.
 
 ## Usage
 
-An instance of the service is hosted at [http://margo.eliseyzanko.com](http://margo.eliseyzanko.com). Feel free to play with it.
-
 ### CLI
 
 ```
